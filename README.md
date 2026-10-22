@@ -5,16 +5,19 @@ A local cyber-RPG for an ECE graduate learning Python, backend engineering and A
 ## Launch on your Mac
 
 1. Install **Python 3.12** (recommended; 3.11+ supported) if you do not already have it. VS Code is optional but recommended as your editor.
-2. Extract `ECE-to-AI.zip`. In Terminal, change into the extracted `ECE-to-AI` folder.
-3. Run:
+2. In Terminal, download the game and launch it:
 
 ```bash
+git clone https://github.com/MangthasaPde/ECE-to-AI.git
+cd ECE-to-AI
 ./setup_and_run.sh
 ```
 
+No git? On the GitHub page, choose **Code → Download ZIP**, extract it, change into the extracted folder in Terminal, and run `bash setup_and_run.sh`.
+
 Open **http://localhost:8000**. Keep Terminal running; press Ctrl+C to stop. First launch needs internet access and may take several minutes to install Chroma and the other dependencies. Later launches reuse `.venv` and work offline for lessons, quizzes and verification. There are no CDN fonts, CSS libraries or scripts.
 
-If the ZIP extractor drops executable permissions, use `bash setup_and_run.sh`. If your default Python is too old, use `GAUNTLET_PYTHON=python3.12 ./setup_and_run.sh` after installing Python 3.12. If port 8000 is occupied, stop the other service before relaunching. Do not move the project with an existing virtual environment; recreate `.venv` after moving it.
+If you get a permission error, use `bash setup_and_run.sh`. If your default Python is too old, use `GAUNTLET_PYTHON=python3.12 ./setup_and_run.sh` after installing Python 3.12. If port 8000 is occupied, stop the other service before relaunching. Do not move the project with an existing virtual environment; recreate `.venv` after moving it.
 
 ## Play your first mission
 

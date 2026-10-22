@@ -9,3 +9,5 @@ workspace/**/result.json
 workspace/**/vectors/
 .DS_Store
 *.app/
+workspace/*
+!workspace/.gitkeep
