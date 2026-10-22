@@ -1,0 +1,54 @@
+[
+  {
+    "id": "1.boss",
+    "world": 1,
+    "title": "The Automaton Scribe",
+    "path": "world1_boss/assistant.py",
+    "lesson": "Build a CLI research assistant by composing parsing, validation, a secure client and file I/O. Keep import side effects absent. Read UTF-8 text with pathlib.Path.read_text. Ask the model for a JSON object with summary and exactly five technical keywords. json.loads checks syntax; explicit shape checks enforce your contract. Write output only after validation. Put argument parsing inside if __name__ == \"__main__\". Verification injects a fake SDK client; a real run uses google-genai and your .env configuration.",
+    "example": "python workspace/world1_boss/assistant.py workspace/world1_boss/sample.txt workspace/world1_boss/result.json",
+    "quest": "Implement summarize_file(input_path, output_path, client=None) \u2192 dict. Require nonempty input text. If no client is injected, load .env, validate GEMINI_API_KEY/GEMINI_MODEL and create genai.Client. Call client.models.generate_content(model=os.environ.get(\"GEMINI_MODEL\", \"test-model\"), contents=prompt, config={\"response_mime_type\":\"application/json\"}). Prompt must include the complete input text and request summary + five technical keywords. Parse response.text; require nonempty summary str and exactly 5 distinct nonempty keyword strings. Invalid model JSON/shape \u2192 ValueError; missing file \u2192 FileNotFoundError. Save validated UTF-8 JSON to output_path and return it. Provide CLI positional input/output arguments. Offline verification does not prove live API availability.",
+    "hints": [
+      "Separate generation from validation. Use a set to check keyword uniqueness.",
+      "Never overwrite the output before the response has passed validation."
+    ]
+  },
+  {
+    "id": "2.boss",
+    "world": 2,
+    "title": "The Gatekeeper",
+    "path": "world2_boss/server.py",
+    "lesson": "Turn the assistant into a service with an injectable model and persistent requests. Validation belongs at the HTTP boundary. Store the text and structured response with SQL parameters. A provider error is a service failure, not a successful analysis. The supplied llm helper can call Gemini when no fake is injected.",
+    "example": "app = create_app(\"requests.db\", llm=my_classifier)\n# my_classifier(text) returns {\"intent\":\"question\",\"sentiment\":\"neutral\"}",
+    "quest": "Implement create_app(db_path, llm=None) \u2192 FastAPI. POST /analyze accepts nonblank text up to 4000 characters; invalid input returns 422. Call llm(text), whose result must contain nonempty intent and sentiment in positive/neutral/negative. Return that result as JSON. Save each successful text and JSON response into analyses(id INTEGER PRIMARY KEY, text TEXT, response TEXT). Invalid/failed model responses return 502, without storing a row. Default llm calls gauntlet_ai.generate_json with a classification prompt. Expose app=create_app(...) using a local database path. No API calls during import.",
+    "hints": [
+      "Use a Pydantic validator to reject whitespace-only input.",
+      "Wrap model failures at the route boundary and insert only after validation."
+    ]
+  },
+  {
+    "id": "3.boss",
+    "world": 3,
+    "title": "The Hallucination Hydra",
+    "path": "world3_boss/rag_engine.py",
+    "lesson": "A complete RAG path starts with documents and ends with traceable evidence. Inject embed(texts) so the same encoder represents chunks and queries. Store vectors and source IDs in Chroma, then retrieve the top three. A source citation here includes both its ID and an exact quote; validate both. A schema alone cannot prove that the answer follows from the quote.",
+    "example": "result = answer_question(\"sample.txt\", \"What does an ADC do?\", \"vectors\", embed, generate)\n# result: {\"answer\": \"...\", \"citations\": [{\"id\":\"chunk-0\",\"quote\":\"...\"}]}",
+    "quest": "Implement answer_question(doc_path, question, db_path, embed=None, generate=None). Split the document on blank lines, assigning chunk-0 etc.; reject empty docs. Embed all chunks and query using embed(list[str]) \u2192 list[list[float]]. Use persistent Chroma collection rag (cosine); replace old entries on each ingest. Retrieve min(3,chunk_count). Call generate(question, sources) with retrieved [{\"id\", \"text\"}] in rank order. Validate a nonempty answer and nonempty citations [{\"id\",\"quote\"}]: each ID must be retrieved and each nonempty quote an exact substring of that source. Return the validated result. Defaults use gauntlet_ai.embed and gauntlet_ai.answer. Verification uses deterministic synthetic vectors, not a live semantic-quality benchmark.",
+    "hints": [
+      "Chroma query returns nested lists for IDs and documents; zip the first lists together.",
+      "Reject forged IDs and altered quotes before returning an answer."
+    ]
+  },
+  {
+    "id": "4.boss",
+    "world": 4,
+    "title": "The Architect",
+    "path": "world4_boss/server.py",
+    "lesson": "Ship a bounded multi-source agent with a working browser console. Tools are deterministic capabilities, the model chooses actions, and the server enforces the budget. Keep configuration separate from source and package a minimal FastAPI service. The portfolio deliverable includes a runnable UI, container recipe and documentation; the verification suite checks behavior and structure, while an actual Docker build remains a local smoke test.",
+    "example": "app = create_app(decide=my_decider)\n# decide(question, history) returns {\"tool\":\"search_docs\",\"args\":{\"query\":\"ADC\"}} or {\"final\":\"...\"}",
+    "quest": "Implement create_app(decide=None) and app. POST /agent accepts nonblank question; max_steps defaults to 6 (range 1..8). Call decide(question, history), starting with []. A {\"final\":text} returns {\"answer\":text,\"steps\":len(history)}. Otherwise dispatch only search_docs(query) and calculate(a,b,op). search_docs returns matching entries from local docs.json (list of {id,text}, case-insensitive substring); calculate supports +,-,*,/ and numeric inputs. Append {\"tool\":name,\"result\":result}. Invalid tools/arguments \u2192 400; budget exhausted \u2192 508. Default decide uses gauntlet_ai.decide. GET / serves index.html with a form, fetch(\"/agent\"...), and textContent. Include requirements.txt, Dockerfile (uvicorn server:app on 0.0.0.0:8000), .gitignore, .dockerignore and README.md. Copy gauntlet_ai.py into this directory for a standalone portfolio service.",
+    "hints": [
+      "Write a small dispatch function and test it before wiring the agent loop.",
+      "The two tools are separate sources of evidence: a document corpus and an arithmetic engine."
+    ]
+  }
+]

@@ -1,0 +1,1 @@
+An analog-to-digital converter samples a continuous voltage and quantizes it into digital codes. Resolution controls quantization step size. Sampling rate limits the signal bandwidth that can be represented without aliasing. A low-pass anti-alias filter removes frequencies above the Nyquist limit.

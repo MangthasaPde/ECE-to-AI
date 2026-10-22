@@ -1,0 +1,7 @@
+ADC converts analog voltages into digital codes.
+
+PWM controls average output power by varying duty cycle.
+
+A low-pass filter attenuates high frequencies.
+
+An antenna radiates electromagnetic waves.

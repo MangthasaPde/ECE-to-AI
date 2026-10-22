@@ -1,0 +1,1404 @@
+{
+  "worlds": [
+    "The Silicon Citadel",
+    "The Nexus Grid",
+    "The Vector Vault",
+    "The Production Forge"
+  ],
+  "levels": [
+    {
+      "id": "1.1",
+      "world": 1,
+      "title": "Boot Sequence: Sensor Telemetry",
+      "lesson": "A variable is a name attached to a value, like a label on a register. Python infers the type: 42 is an int, 3.3 is a float, \"ADC\" is a str, and True is a bool. Quotes distinguish data from variable names. Assignment (=) stores a reference; equality (==) asks a question.\n\nA function is a reusable circuit block: parameters are input pins and return is its output pin. print() sends text to the terminal; it does not return that text to its caller. Indent a function body with four spaces.\n\nAn f-string inserts values into text. The format specifier :.2f rounds the displayed number to two decimal places without changing the original value. In Terminal, python3 file.py runs a script; in the game, pytest imports your function and checks its return value. A # starts a comment.",
+      "example": "def voltage_label(volts):\n    return f\"V={volts:.2f} V\"\n\nprint(voltage_label(3.14159))  # V=3.14 V",
+      "quest": "Implement format_telemetry(sensor_id, voltage, active). Return exactly \"<id> | <voltage to 2 decimals> V | ON\" (or OFF). Do not print instead of returning. Example: format_telemetry(\"ADC-1\", 3.3, True) \u2192 \"ADC-1 | 3.30 V | ON\". Accept negative and zero voltages.",
+      "path": "world1/level_1_1.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "3.30 V",
+            "3.3 V",
+            "volts V",
+            "TypeError"
+          ],
+          "answer": 0,
+          "explanation": "An f-string evaluates volts and :.2f displays exactly two decimal places.",
+          "code": "volts = 3.3\nunit = \"V\"\ntext = f\"{volts:.2f} {unit}\"\nprint(text)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails, and why?",
+          "options": [
+            "Line 1: strings cannot contain digits",
+            "Line 2: str + int is not allowed",
+            "Line 3: print requires a number",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "\"3\" is a string. Convert it with int(value) or use a numeric literal before adding 1.",
+          "code": "value = \"3\"\nnext_value = value + 1\nprint(next_value)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why should a tested function return its result?",
+          "options": [
+            "return saves it to disk",
+            "return always prints",
+            "The caller can use and test the value",
+            "It converts everything to JSON"
+          ],
+          "answer": 2,
+          "explanation": "return passes a value back to the caller. print only writes a representation to standard output.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Start with status = \"ON\" if active else \"OFF\".",
+        "Use an f-string with {voltage:.2f}; spaces and punctuation are part of the contract."
+      ]
+    },
+    {
+      "id": "1.2",
+      "world": 1,
+      "title": "Noise Patrol: Loops & Lists",
+      "lesson": "A list is an ordered buffer of samples. Indexing begins at zero, just like many register addresses. A for loop visits each sample; an if condition decides whether a sample passes the gate. Python uses indentation instead of braces.\n\nComparisons can be chained: low <= sample <= high includes both boundaries. append adds an element to a result list. Preserve the original input: removing items from the same list you are iterating can skip values.\n\nA list comprehension expresses a filter compactly: [x for x in samples if condition]. First solve the problem with a loop, then compare the two forms. An empty input should produce an empty output. Raise ValueError for an invalid range, rather than silently guessing what the caller meant.",
+      "example": "def positive(samples):\n    result = []\n    for sample in samples:\n        if sample > 0:\n            result.append(sample)\n    return result",
+      "quest": "Implement filter_signal(samples, low, high). Return a new list containing values in the inclusive [low, high] range, in original order. Never mutate samples. Raise ValueError when low > high.",
+      "path": "world1/level_1_2.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "[1, 2]",
+            "[2, 3]",
+            "[3]",
+            "[1, 2, 3]"
+          ],
+          "answer": 1,
+          "explanation": "x >= 2 admits both 2 and 3. The comprehension preserves their order.",
+          "code": "samples = [1, 2, 3]\ncutoff = 2\nkept = [x for x in samples if x >= cutoff]\nprint(kept)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1: bad list",
+            "Line 2: list index out of range",
+            "Line 3: printing is forbidden",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "A two-element list has indices 0 and 1. Index 2 is outside it.",
+          "code": "samples = [10, 20]\nlast = samples[2]\nprint(last)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why return a new filtered list?",
+          "options": [
+            "It sorts automatically",
+            "It changes every sample to float",
+            "It avoids surprising changes to the caller\u2019s buffer",
+            "It removes duplicates automatically"
+          ],
+          "answer": 2,
+          "explanation": "A function that does not mutate its input is easier to reuse and reason about. A filter need not sort or deduplicate.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Check low > high before the loop, even when samples is empty.",
+        "Create result = []; append only samples satisfying low <= sample <= high."
+      ]
+    },
+    {
+      "id": "1.3",
+      "world": 1,
+      "title": "Packet Decoder: Dictionaries & JSON",
+      "lesson": "A dictionary maps keys to values, like a register map that names each field. packet[\"device\"][\"id\"] follows two nested maps. A missing key raises KeyError; get(key, default) is useful when a field is genuinely optional.\n\nJSON is a text format for exchanging structured data. Python dictionaries are in-memory objects. json.loads converts JSON text to Python objects; json.dumps converts Python objects to JSON text. JSON uses double quotes, true/false and null; Python uses True/False and None.\n\nValidate a packet before processing it. A syntactically valid JSON document can still have the wrong shape. Catch JSONDecodeError when parsing text; do not catch every exception and pretend the packet is valid. Here we explicitly require a nonempty device ID, a list of readings, and numeric voltages. bool is a subclass of int in Python, so use type(v) in (int, float) if booleans must be rejected.",
+      "example": "import json\npacket = json.loads('{\"device\": {\"id\": \"A\"}}')\nprint(packet[\"device\"][\"id\"])\nprint(json.dumps({\"ready\": True}))",
+      "quest": "Implement restructure_payload(raw_json). Input shape: {\"device\":{\"id\":\"A\"},\"readings\":[{\"voltage\":3.0},{\"voltage\":5.0}]}. Return {\"device_id\":\"A\",\"voltages\":[3.0,5.0],\"average_voltage\":4.0}. Empty readings \u2192 average_voltage = None. Invalid JSON, missing/wrong-shaped fields, empty ID, or nonnumeric/boolean voltage must raise ValueError. Ignore unrelated extra fields.",
+      "path": "world1/level_1_3.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "A",
+            "7",
+            "id",
+            "KeyError"
+          ],
+          "answer": 0,
+          "explanation": "The first lookup selects the nested dictionary and the second selects its id.",
+          "code": "packet = {\"device\": {\"id\": \"A\"}}\ndevice = packet[\"device\"]\nlabel = device[\"id\"]\nprint(label)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails and why?",
+          "options": [
+            "Line 1: JSON cannot have strings",
+            "Line 2: raw is text, not a dict",
+            "Line 3: invalid print",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Parse with json.loads(raw) before indexing by a dictionary key. Strings accept integer indices.",
+          "code": "raw = '{\"id\":\"A\"}'\nlabel = raw[\"id\"]\nprint(label)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why validate after json.loads succeeds?",
+          "options": [
+            "All JSON values are unsafe code",
+            "Parsing only proves syntax, not the required shape",
+            "loads always drops keys",
+            "Validation encrypts the data"
+          ],
+          "answer": 1,
+          "explanation": "Valid JSON may be a list, a number, or a dictionary missing required fields. Your application contract still needs validation.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Wrap parsing and shape checks so malformed input consistently raises ValueError.",
+        "Build voltages first; sum(voltages) / len(voltages) only when the list is nonempty."
+      ]
+    },
+    {
+      "id": "1.4",
+      "world": 1,
+      "title": "Secure Uplink: Environments & Gemini",
+      "lesson": "A virtual environment is a separate component bin for one project: it prevents dependency versions for different projects from colliding. Create one with python3 -m venv .venv, then activate with source .venv/bin/activate. This game\u2019s launcher does both for you.\n\nSecrets belong in environment variables, not source code. A local .env file is a convenience for loading variables; it is not encryption. Keep it out of Git with .gitignore. Use python-dotenv\u2019s load_dotenv() in an executable entry point. Tests inject environment values without using a real key.\n\nThe google-genai SDK exposes genai.Client(api_key=key). Call client.models.generate_content(model=model, contents=prompt). The response\u2019s text contains the generated text. Models and availability can change, so the model name belongs in configuration too.\n\nDependency injection means accepting a client parameter instead of building a new one deep inside your function. Like swapping a signal generator into a test fixture, it lets tests verify the request without a network or bill. Never call an API during module import. Validate key and prompt before creating the live client. Network exceptions should remain visible for the caller to handle.",
+      "example": "import os\nfrom google import genai\n\n# Inside a function, after validating the key:\n# client = genai.Client(api_key=os.environ[\"GEMINI_API_KEY\"])\n# reply = client.models.generate_content(\n#     model=os.environ[\"GEMINI_MODEL\"], contents=\"Explain an ADC\")\n# print(reply.text)",
+      "quest": "Implement secure_generate(prompt, client=None). Read GEMINI_API_KEY and GEMINI_MODEL from os.environ. Reject blank key, model, or prompt with ValueError (even if a fake client was passed). If client is None, build google.genai.Client(api_key=key). Call client.models.generate_content(model=model, contents=prompt) once and return response.text. Raise ValueError for empty/None response text. Never log keys. Tests inject a fake client and require no network.",
+      "path": "world1/level_1_4.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "demo-key",
+            "False",
+            "True",
+            "KeyError"
+          ],
+          "answer": 2,
+          "explanation": "get returns the stored value and bool converts a nonempty string to True. This prints presence, not the secret itself.",
+          "code": "env = {\"API_KEY\": \"demo-key\"}\nkey = env.get(\"API_KEY\")\nconfigured = bool(key)\nprint(configured)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line raises an exception?",
+          "options": [
+            "Line 1: empty maps are invalid",
+            "Line 2: missing key causes KeyError",
+            "Line 3: bool cannot accept strings",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Indexing a missing key raises KeyError. get plus explicit validation allows a friendlier configuration error.",
+          "code": "env = {}\nkey = env[\"API_KEY\"]\nprint(bool(key))"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why inject a fake SDK client during verification?",
+          "options": [
+            "It gives unlimited free live calls",
+            "It hides all programming mistakes",
+            "It makes request checks deterministic without exposing keys or spending API credits",
+            "It replaces the virtual environment"
+          ],
+          "answer": 2,
+          "explanation": "A fake records the request and returns controlled data. Live API behavior is a separate integration check.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Use os.environ.get(name, \"\").strip() for configuration checks.",
+        "A fake has the same models.generate_content surface. Do not replace an injected client."
+      ]
+    },
+    {
+      "id": "2.1",
+      "world": 2,
+      "title": "First Contact: GET Endpoints",
+      "lesson": "HTTP is a request/response protocol, like a command bus with standardized frames. GET reads data. FastAPI maps a URL to a Python function and serializes dictionaries as JSON. A path not registered normally returns 404.",
+      "example": "from fastapi import FastAPI\napp = FastAPI()\n@app.get(\"/ping\")\ndef ping():\n    return {\"status\": \"ok\"}",
+      "quest": "Expose app, a FastAPI instance, with GET /sensor/{sensor_id}. Return {\"id\":sensor_id,\"voltage\":3.3}. The ID is a string.",
+      "path": "world2/level_2_1.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "True",
+            "False",
+            "None",
+            "404"
+          ],
+          "answer": 0,
+          "explanation": "3.3 is greater than zero.",
+          "code": "payload = {\"voltage\": 3.3}\nvalue = payload[\"voltage\"]\nresult = value > 0\nprint(result)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 reads a missing dictionary key.",
+          "code": "data = {\"id\": \"A\"}\nvalue = data[\"missing\"]\nprint(value)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why use GET for reading telemetry?",
+          "options": [
+            "GET describes a read operation",
+            "GET encrypts requests",
+            "GET stores database rows",
+            "GET requires JSON bodies"
+          ],
+          "answer": 0,
+          "explanation": "HTTP methods communicate intent. GET is for retrieval.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "2.2",
+      "world": 2,
+      "title": "Schema Shield: Pydantic & POST",
+      "lesson": "Pydantic validates incoming data like an input protection circuit. A BaseModel declares fields. Field(min_length=1) rejects empty text; constrained numbers reject invalid ranges. FastAPI parses a model parameter from JSON and returns 422 for invalid input. POST submits data for processing.",
+      "example": "from pydantic import BaseModel, Field\nclass Sample(BaseModel):\n    name: str = Field(min_length=1)\n    voltage: float = Field(ge=0, le=5)",
+      "quest": "Expose FastAPI app and POST /samples. Validate name is nonempty and voltage is between 0 and 5 inclusive. Return the validated name and voltage with HTTP 201.",
+      "path": "world2/level_2_2.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "True",
+            "False",
+            "5",
+            "None"
+          ],
+          "answer": 0,
+          "explanation": "Both range boundaries are inclusive.",
+          "code": "payload = {\"voltage\": 5}\nv = payload[\"voltage\"]\nvalid = 0 <= v <= 5\nprint(valid)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 fails with KeyError because voltage is absent.",
+          "code": "payload = {}\nvoltage = payload[\"voltage\"]\nprint(voltage)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why validate at an API boundary?",
+          "options": [
+            "To guarantee the model is truthful",
+            "To reject malformed input before business logic",
+            "To replace authentication",
+            "To avoid HTTP"
+          ],
+          "answer": 1,
+          "explanation": "Validation gives downstream code a predictable input shape.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "2.3",
+      "world": 2,
+      "title": "Memory Bank: SQLite",
+      "lesson": "SQLite is a local relational database stored in one file. CREATE TABLE defines a schema; INSERT stores rows; SELECT reads them. Commit writes transactions. Use ? placeholders for values: string interpolation mixes data with SQL instructions and enables injection. Use a context manager to commit or roll back, and close the connection.",
+      "example": "import sqlite3\ncon = sqlite3.connect(\":memory:\")\ncon.execute(\"CREATE TABLE t (value REAL)\")\ncon.execute(\"INSERT INTO t VALUES (?)\", (3.3,))",
+      "quest": "Implement store_reading(db_path, name, voltage). Create readings(id INTEGER PRIMARY KEY, name TEXT, voltage REAL) if needed, insert using parameters, commit, and return total row count. Persist across calls.",
+      "path": "world2/level_2_3.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "2",
+            "3",
+            "4",
+            "1"
+          ],
+          "answer": 1,
+          "explanation": "Two existing rows plus one gives three.",
+          "code": "rows = [(\"A\", 3), (\"B\", 4)]\ncount = len(rows)\ncount += 1\nprint(count)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 tries to modify an immutable tuple.",
+          "code": "row = (\"ADC\", 3.3)\nrow[0] = \"TEMP\"\nprint(row)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why use SQL placeholders?",
+          "options": [
+            "They compress the database",
+            "They separate data from SQL instructions",
+            "They automatically create tables",
+            "They replace commits"
+          ],
+          "answer": 1,
+          "explanation": "Parameters keep user data from being interpreted as executable SQL.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "2.4",
+      "world": 2,
+      "title": "Fault Tolerance: Async & Errors",
+      "lesson": "An exception is a fault signal. Catch specific exceptions at a boundary and translate them into useful responses. HTTP 404 means not found; 422 means invalid request data; 503 can indicate a temporary upstream outage. async def creates a coroutine; await yields while an asynchronous operation waits. It does not make CPU-heavy or blocking code magically nonblocking.",
+      "example": "async def read_bus(reader):\n    try:\n        return await reader()\n    except TimeoutError:\n        return {\"error\": \"timeout\"}",
+      "quest": "Implement async fetch_voltage(reader). Await reader() once and return {\"voltage\": value}. Convert TimeoutError to FastAPI HTTPException(status_code=503, detail=\"Sensor unavailable\"). Let other exceptions propagate.",
+      "path": "world2/level_2_4.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "1",
+            "2",
+            "3",
+            "0"
+          ],
+          "answer": 1,
+          "explanation": "404 and 503 are error statuses.",
+          "code": "codes = [200, 404, 503]\nerrors = [c for c in codes if c >= 400]\ncount = len(errors)\nprint(count)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 cannot convert the word offline to a float.",
+          "code": "value = \"offline\"\nvoltage = float(value)\nprint(voltage)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "What does await do?",
+          "options": [
+            "Runs work on a GPU",
+            "Lets the event loop work while an awaitable waits",
+            "Creates unlimited threads",
+            "Catches all errors"
+          ],
+          "answer": 1,
+          "explanation": "Cooperative scheduling avoids blocking other tasks during supported asynchronous I/O.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "3.1",
+      "world": 3,
+      "title": "Document Shards: Chunking",
+      "lesson": "Retrieval needs searchable pieces instead of one huge document. Chunking splits text into windows. Overlap preserves context near boundaries but increases storage and duplicate retrieval. A fixed character window is a teaching baseline; production systems often use token or semantic boundaries. Ensure overlap < size so the loop advances.",
+      "example": "text = \"ABCDEFG\"\nprint(text[0:4])\nprint(text[3:7])",
+      "quest": "Implement chunk_text(text, size, overlap). Return nonempty character windows, advancing by size-overlap. Stop after the first window reaches the end (no redundant trailing windows). Empty text \u2192 []. Require size > 0 and 0 <= overlap < size; otherwise ValueError.",
+      "path": "world3/level_3_1.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "ABCD",
+            "DEFG",
+            "CDEF",
+            "DEF"
+          ],
+          "answer": 1,
+          "explanation": "Index 3 starts at D and the exclusive end is index 7.",
+          "code": "text = \"ABCDEFG\"\nstart = 3\nchunk = text[start:start+4]\nprint(chunk)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 2,
+          "explanation": "Line 3 divides by zero because overlap equal to size makes the stride zero.",
+          "code": "size = 4\nstep = size - size\nwindows = 10 // step"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why overlap chunks?",
+          "options": [
+            "To preserve context across boundaries",
+            "To guarantee correct answers",
+            "To eliminate storage",
+            "To encrypt text"
+          ],
+          "answer": 0,
+          "explanation": "Adjacent windows share context that otherwise could be split apart.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "3.2",
+      "world": 3,
+      "title": "Vector Compass: Cosine Similarity",
+      "lesson": "An embedding is a vector representing features of content. Cosine similarity compares direction: dot(a,b)/(norm(a)*norm(b)). Parallel vectors score 1, perpendicular vectors 0, opposing vectors -1. Magnitude does not change direction. A zero vector has no direction, so define its score as zero for this quest. Real semantic embeddings come from trained models.",
+      "example": "import math\na, b = [1, 0], [0, 1]\ndot = sum(x*y for x,y in zip(a,b))\nprint(dot)  # 0",
+      "quest": "Implement cosine(a,b). Equal-length nonempty numeric lists only; raise ValueError on dimension mismatch or empty input. Return 0.0 for any zero norm. Otherwise return cosine similarity.",
+      "path": "world3/level_3_2.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "1",
+            "0",
+            "-1",
+            "2"
+          ],
+          "answer": 1,
+          "explanation": "The vectors are orthogonal and both component products are zero.",
+          "code": "a = [1, 0]\nb = [0, 1]\ndot = sum(x*y for x,y in zip(a,b))\nprint(dot)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 divides by zero; zero vectors need an explicit policy.",
+          "code": "norm = 0\nscore = 1 / norm\nprint(score)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why use cosine rather than raw dot product?",
+          "options": [
+            "Cosine removes magnitude dependence",
+            "Cosine guarantees truth",
+            "Cosine requires no vectors",
+            "Cosine always equals one"
+          ],
+          "answer": 0,
+          "explanation": "Normalization compares direction instead of rewarding larger magnitudes.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "3.3",
+      "world": 3,
+      "title": "Vector Archive: ChromaDB",
+      "lesson": "Chroma stores IDs, documents, metadata and embeddings. Use PersistentClient(path=...) for disk persistence and get_or_create_collection to reopen an index. Explicit embeddings avoid automatic model downloads. upsert handles repeated IDs; query_embeddings searches with an existing vector. Query results have one outer list per query. Use cosine distance consistently; smaller distance is closer.",
+      "example": "import chromadb\nclient = chromadb.PersistentClient(path=\"./vectors\")\ncollection = client.get_or_create_collection(\"notes\", metadata={\"hnsw:space\":\"cosine\"})\n# collection.query(query_embeddings=[[1.,0.]], n_results=1)",
+      "quest": "Implement search_chunks(path, documents, embeddings, query, k=3) using a persistent Chroma collection named notes (cosine). Upsert IDs \"0\", \"1\", etc. Query provided embeddings; return ordered document strings, with at most min(k, collection.count()) results. Inputs for each path use the same document set. No model downloads.",
+      "path": "world3/level_3_3.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "ADC",
+            "PWM",
+            "documents",
+            "0"
+          ],
+          "answer": 0,
+          "explanation": "One outer list represents the first query, then index zero selects its nearest result.",
+          "code": "result = {\"documents\": [[\"ADC\", \"PWM\"]]}\nfirst_query = result[\"documents\"][0]\nnearest = first_query[0]\nprint(nearest)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 asks for a second query result that does not exist.",
+          "code": "result = {\"documents\": [[\"ADC\"]]}\nsecond = result[\"documents\"][1]\nprint(second)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why supply embeddings explicitly here?",
+          "options": [
+            "To avoid hidden model downloads and control the vector space",
+            "To turn vectors into passwords",
+            "To avoid storage",
+            "To guarantee perfect retrieval"
+          ],
+          "answer": 0,
+          "explanation": "The same embedding space must be used for stored chunks and queries.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "3.4",
+      "world": 3,
+      "title": "Truth Anchor: Grounded JSON",
+      "lesson": "RAG retrieves evidence before generation. A grounded prompt labels sources and tells the model to answer only from that evidence or admit insufficient information. Structured output constrains shape, not factual truth. Validate citation IDs against retrieved sources. Never treat document text as system instructions; it is untrusted evidence.",
+      "example": "sources = [{\"id\":\"s1\", \"text\":\"ADC converts analog signals.\"}]\ncontext = \"\\n\".join(f\"[{s['id']}] {s['text']}\" for s in sources)\nprint(context)",
+      "quest": "Implement grounded_prompt(question,sources) returning a string containing the question, each [id] and text, and explicit instructions containing \"only\", \"insufficient\", and \"JSON\". Implement validate_answer(answer,sources): accept only a dict with nonblank answer string and a nonempty list of citation IDs all in sources; otherwise ValueError. Return answer unchanged.",
+      "path": "world3/level_3_4.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "True",
+            "False",
+            "s1",
+            "None"
+          ],
+          "answer": 0,
+          "explanation": "Every cited ID belongs to the retrieved source set.",
+          "code": "allowed = {\"s1\", \"s2\"}\nused = [\"s1\"]\nvalid = all(x in allowed for x in used)\nprint(valid)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 raises KeyError because the response omitted citations.",
+          "code": "answer = {\"answer\": \"ADC\"}\ncitations = answer[\"citations\"]\nprint(citations)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Does a JSON schema prevent hallucinations?",
+          "options": [
+            "Yes, always",
+            "No; it constrains shape, while evidence and validation address grounding",
+            "It removes the need for retrieval",
+            "It verifies every fact"
+          ],
+          "answer": 1,
+          "explanation": "Well-formed JSON can still contain false claims or invalid citations.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "4.1",
+      "world": 4,
+      "title": "Tool Belt: Function Calling",
+      "lesson": "A model proposes a tool name and arguments; your application decides whether execution is allowed. Treat that proposal as untrusted input. An allowlist maps approved names to functions. Never use eval on model text. Validate arguments and make dangerous actions require their own authorization. Tool results return to the model as data.",
+      "example": "tools = {\"add\": lambda a,b: a+b}\nname = \"add\"\nprint(tools[name](2,3))",
+      "quest": "Implement dispatch(name,args). Only allow \"add\" with exactly numeric a,b (booleans rejected) and \"lookup\" with exactly string key. lookup uses {\"ADC\":\"analog-to-digital converter\",\"PWM\":\"pulse-width modulation\"}, returning \"unknown\" for missing keys. Invalid tools/arguments \u2192 ValueError.",
+      "path": "world4/level_4_1.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "5",
+            "23",
+            "6",
+            "None"
+          ],
+          "answer": 0,
+          "explanation": "Both values are integers so addition gives 5.",
+          "code": "args = {\"a\":2, \"b\":3}\na = args[\"a\"]\nb = args[\"b\"]\nprint(a+b)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 asks for a tool outside the allowlist.",
+          "code": "tools = {\"add\": sum}\nfn = tools[\"shell\"]\nprint(fn)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why avoid eval on tool arguments?",
+          "options": [
+            "It is too accurate",
+            "It can execute arbitrary code",
+            "It only accepts numbers",
+            "It forces JSON"
+          ],
+          "answer": 1,
+          "explanation": "Model-produced text must be validated as data, never executed as Python.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "4.2",
+      "world": 4,
+      "title": "Agent Circuit: Bounded Loops",
+      "lesson": "An agent alternates a model decision, a tool action, and an observation. ReAct is often described as Thought \u2192 Action \u2192 Observation; implement short action summaries, not demands for private reasoning. A maximum step budget prevents infinite loops and surprise costs. Append tool outputs to history so the next decision has evidence.",
+      "example": "history = []\nhistory.append({\"tool\":\"lookup\", \"result\":\"ADC\"})\nprint(history[-1][\"result\"])",
+      "quest": "Implement run_agent(decide, tools, max_steps=4). Each turn call decide(history), initially []. A decision {\"final\":text} returns text. Otherwise {\"tool\":name,\"args\":dict} invokes tools[name](**args), then appends {\"tool\":name,\"result\":result} to history. Unknown tools \u2192 ValueError. No final within the budget \u2192 RuntimeError. Nonpositive budget \u2192 ValueError.",
+      "path": "world4/level_4_2.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "0",
+            "1",
+            "5",
+            "None"
+          ],
+          "answer": 2,
+          "explanation": "The latest observation contains result 5.",
+          "code": "history = []\nhistory.append({\"result\":5})\nvalue = history[-1][\"result\"]\nprint(value)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 calls an unregistered tool and raises KeyError.",
+          "code": "tools = {}\nresult = tools[\"lookup\"]()\nprint(result)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why bound agent steps?",
+          "options": [
+            "To eliminate every error",
+            "To limit runaway loops and cost",
+            "To disable observations",
+            "To force one tool only"
+          ],
+          "answer": 1,
+          "explanation": "A finite action budget makes failure predictable and caps repeated calls.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "4.3",
+      "world": 4,
+      "title": "Bridge Console: Frontend Fetch",
+      "lesson": "A browser UI sends HTTP requests with fetch. Set Content-Type: application/json and JSON.stringify the body. Check response.ok because fetch does not reject simply for HTTP 400 or 500. Display generated text with textContent, not innerHTML, to avoid interpreting it as markup. Keep API keys on the server.",
+      "example": "const response = await fetch(\"/echo\", {method:\"POST\",\n  headers:{\"Content-Type\":\"application/json\"}, body:JSON.stringify({text:\"hi\"})});\nif (!response.ok) throw new Error(\"Request failed\");\noutput.textContent = (await response.json()).text;",
+      "quest": "Expose FastAPI app with GET / returning HTML containing a form, a fetch call to /echo, and textContent rendering. POST /echo validates nonempty text and returns {\"text\":input_text}. Implement HTML in the Python file or a sibling index.html.",
+      "path": "world4/level_4_3.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "hi",
+            "HI",
+            "text",
+            "None"
+          ],
+          "answer": 1,
+          "explanation": "upper returns an uppercase string.",
+          "code": "data = {\"text\":\"hi\"}\ntext = data[\"text\"]\nmessage = text.upper()\nprint(message)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 uses the wrong field name. Client and server must agree on a schema.",
+          "code": "payload = {\"text\":\"hi\"}\nvalue = payload[\"body\"]\nprint(value)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Why use textContent for model output?",
+          "options": [
+            "It runs HTML scripts",
+            "It renders untrusted output as text",
+            "It stores API keys",
+            "It bypasses validation"
+          ],
+          "answer": 1,
+          "explanation": "Model output should not become executable HTML.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    },
+    {
+      "id": "4.4",
+      "world": 4,
+      "title": "Shipyard: Docker & Git Hygiene",
+      "lesson": "A Dockerfile is a reproducible build recipe. FROM chooses a base, WORKDIR sets a directory, COPY adds files, RUN installs dependencies, and CMD starts the service. Copy requirements before source to reuse the dependency layer. A .dockerignore excludes build-context secrets; .gitignore only affects Git. Containers are not a reason to bake credentials into images.",
+      "example": "FROM python:3.12-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\nCOPY . .\nCMD [\"python\", \"server.py\"]",
+      "quest": "Implement build_files() returning a dict with Dockerfile, .gitignore, .dockerignore, requirements.txt, server.py strings. Dockerfile must use python:3.12-slim, /app, pip install -r requirements.txt, COPY source, expose 8000 and launch uvicorn server:app on 0.0.0.0:8000. Include fastapi and uvicorn dependencies. Both ignore files exclude .env, .venv, __pycache__. server.py exposes FastAPI app and GET /health \u2192 {\"ok\":True}. Verification writes these files into generated/ beside the quest. Optional manual docker build/run validates the actual container.",
+      "path": "world4/level_4_4.py",
+      "quiz": [
+        {
+          "kind": "Predict the Output",
+          "prompt": "What is printed?",
+          "options": [
+            "BASE",
+            "DEPS",
+            "APP",
+            "None"
+          ],
+          "answer": 2,
+          "explanation": "The last layer name is app.",
+          "code": "layers = [\"base\", \"deps\", \"app\"]\nchanged = layers[-1]\nlabel = changed.upper()\nprint(label)"
+        },
+        {
+          "kind": "Spot the Bug",
+          "prompt": "Which line fails?",
+          "options": [
+            "Line 1",
+            "Line 2",
+            "Line 3",
+            "No error"
+          ],
+          "answer": 1,
+          "explanation": "Line 2 cannot convert nonnumeric words into an integer.",
+          "code": "config = {\"port\":8000}\nport = int(\"eight thousand\")\nprint(port)"
+        },
+        {
+          "kind": "Concept",
+          "prompt": "Does .gitignore keep secrets out of Docker builds?",
+          "options": [
+            "Yes, automatically",
+            "No; use .dockerignore for the build context",
+            "Only on Mac",
+            "Only with POST"
+          ],
+          "answer": 1,
+          "explanation": "Git and Docker have separate ignore mechanisms.",
+          "code": ""
+        }
+      ],
+      "hints": [
+        "Read the function contract and inspect the test file in verification/.",
+        "Work on one test at a time; preserve the exact function names and return shapes."
+      ]
+    }
+  ],
+  "gatekeepers": {
+    "1": [
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "3.30 V",
+          "3.3 V",
+          "volts V",
+          "TypeError"
+        ],
+        "answer": 0,
+        "explanation": "An f-string evaluates volts and :.2f displays exactly two decimal places.",
+        "code": "volts = 3.3\nunit = \"V\"\ntext = f\"{volts:.2f} {unit}\"\nprint(text)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why should a tested function return its result?",
+        "options": [
+          "return saves it to disk",
+          "return always prints",
+          "The caller can use and test the value",
+          "It converts everything to JSON"
+        ],
+        "answer": 2,
+        "explanation": "return passes a value back to the caller. print only writes a representation to standard output.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "[1, 2]",
+          "[2, 3]",
+          "[3]",
+          "[1, 2, 3]"
+        ],
+        "answer": 1,
+        "explanation": "x >= 2 admits both 2 and 3. The comprehension preserves their order.",
+        "code": "samples = [1, 2, 3]\ncutoff = 2\nkept = [x for x in samples if x >= cutoff]\nprint(kept)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why return a new filtered list?",
+        "options": [
+          "It sorts automatically",
+          "It changes every sample to float",
+          "It avoids surprising changes to the caller\u2019s buffer",
+          "It removes duplicates automatically"
+        ],
+        "answer": 2,
+        "explanation": "A function that does not mutate its input is easier to reuse and reason about. A filter need not sort or deduplicate.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "A",
+          "7",
+          "id",
+          "KeyError"
+        ],
+        "answer": 0,
+        "explanation": "The first lookup selects the nested dictionary and the second selects its id.",
+        "code": "packet = {\"device\": {\"id\": \"A\"}}\ndevice = packet[\"device\"]\nlabel = device[\"id\"]\nprint(label)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why validate after json.loads succeeds?",
+        "options": [
+          "All JSON values are unsafe code",
+          "Parsing only proves syntax, not the required shape",
+          "loads always drops keys",
+          "Validation encrypts the data"
+        ],
+        "answer": 1,
+        "explanation": "Valid JSON may be a list, a number, or a dictionary missing required fields. Your application contract still needs validation.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "demo-key",
+          "False",
+          "True",
+          "KeyError"
+        ],
+        "answer": 2,
+        "explanation": "get returns the stored value and bool converts a nonempty string to True. This prints presence, not the secret itself.",
+        "code": "env = {\"API_KEY\": \"demo-key\"}\nkey = env.get(\"API_KEY\")\nconfigured = bool(key)\nprint(configured)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why inject a fake SDK client during verification?",
+        "options": [
+          "It gives unlimited free live calls",
+          "It hides all programming mistakes",
+          "It makes request checks deterministic without exposing keys or spending API credits",
+          "It replaces the virtual environment"
+        ],
+        "answer": 2,
+        "explanation": "A fake records the request and returns controlled data. Live API behavior is a separate integration check.",
+        "code": ""
+      },
+      {
+        "kind": "Integration",
+        "prompt": "A sensor sends JSON text. What is the correct sequence?",
+        "options": [
+          "Index text, then parse",
+          "Parse, validate shape, filter readings, serialize result",
+          "Print, delete, upload key",
+          "Serialize twice"
+        ],
+        "answer": 1,
+        "explanation": "Decode the transport format, validate its contract, perform the transformation, and encode the result.",
+        "code": ""
+      },
+      {
+        "kind": "Security",
+        "prompt": "Which files belong in Git?",
+        "options": [
+          ".env containing a real key",
+          "Only .venv",
+          "Source, requirements, and .env.example with placeholders",
+          "All local credentials"
+        ],
+        "answer": 2,
+        "explanation": "Commit reproducible code and placeholder configuration, never credentials or virtual environments.",
+        "code": ""
+      }
+    ],
+    "2": [
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "True",
+          "False",
+          "None",
+          "404"
+        ],
+        "answer": 0,
+        "explanation": "3.3 is greater than zero.",
+        "code": "payload = {\"voltage\": 3.3}\nvalue = payload[\"voltage\"]\nresult = value > 0\nprint(result)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why use GET for reading telemetry?",
+        "options": [
+          "GET describes a read operation",
+          "GET encrypts requests",
+          "GET stores database rows",
+          "GET requires JSON bodies"
+        ],
+        "answer": 0,
+        "explanation": "HTTP methods communicate intent. GET is for retrieval.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "True",
+          "False",
+          "5",
+          "None"
+        ],
+        "answer": 0,
+        "explanation": "Both range boundaries are inclusive.",
+        "code": "payload = {\"voltage\": 5}\nv = payload[\"voltage\"]\nvalid = 0 <= v <= 5\nprint(valid)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why validate at an API boundary?",
+        "options": [
+          "To guarantee the model is truthful",
+          "To reject malformed input before business logic",
+          "To replace authentication",
+          "To avoid HTTP"
+        ],
+        "answer": 1,
+        "explanation": "Validation gives downstream code a predictable input shape.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "2",
+          "3",
+          "4",
+          "1"
+        ],
+        "answer": 1,
+        "explanation": "Two existing rows plus one gives three.",
+        "code": "rows = [(\"A\", 3), (\"B\", 4)]\ncount = len(rows)\ncount += 1\nprint(count)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why use SQL placeholders?",
+        "options": [
+          "They compress the database",
+          "They separate data from SQL instructions",
+          "They automatically create tables",
+          "They replace commits"
+        ],
+        "answer": 1,
+        "explanation": "Parameters keep user data from being interpreted as executable SQL.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "1",
+          "2",
+          "3",
+          "0"
+        ],
+        "answer": 1,
+        "explanation": "404 and 503 are error statuses.",
+        "code": "codes = [200, 404, 503]\nerrors = [c for c in codes if c >= 400]\ncount = len(errors)\nprint(count)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "What does await do?",
+        "options": [
+          "Runs work on a GPU",
+          "Lets the event loop work while an awaitable waits",
+          "Creates unlimited threads",
+          "Catches all errors"
+        ],
+        "answer": 1,
+        "explanation": "Cooperative scheduling avoids blocking other tasks during supported asynchronous I/O.",
+        "code": ""
+      },
+      {
+        "kind": "Integration",
+        "prompt": "What should POST /analyze do first?",
+        "options": [
+          "Insert arbitrary JSON into SQL",
+          "Validate the request model",
+          "Return 200 before work",
+          "Print the API key"
+        ],
+        "answer": 1,
+        "explanation": "Boundary validation rejects malformed requests before upstream calls and persistence.",
+        "code": ""
+      },
+      {
+        "kind": "SQL",
+        "prompt": "Which inserts user input safely?",
+        "options": [
+          "An f-string SQL statement",
+          "Concatenated SQL",
+          "INSERT ... VALUES (?) with parameters",
+          "eval(request)"
+        ],
+        "answer": 2,
+        "explanation": "Bind parameters instead of mixing data with SQL syntax.",
+        "code": ""
+      }
+    ],
+    "3": [
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "ABCD",
+          "DEFG",
+          "CDEF",
+          "DEF"
+        ],
+        "answer": 1,
+        "explanation": "Index 3 starts at D and the exclusive end is index 7.",
+        "code": "text = \"ABCDEFG\"\nstart = 3\nchunk = text[start:start+4]\nprint(chunk)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why overlap chunks?",
+        "options": [
+          "To preserve context across boundaries",
+          "To guarantee correct answers",
+          "To eliminate storage",
+          "To encrypt text"
+        ],
+        "answer": 0,
+        "explanation": "Adjacent windows share context that otherwise could be split apart.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "1",
+          "0",
+          "-1",
+          "2"
+        ],
+        "answer": 1,
+        "explanation": "The vectors are orthogonal and both component products are zero.",
+        "code": "a = [1, 0]\nb = [0, 1]\ndot = sum(x*y for x,y in zip(a,b))\nprint(dot)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why use cosine rather than raw dot product?",
+        "options": [
+          "Cosine removes magnitude dependence",
+          "Cosine guarantees truth",
+          "Cosine requires no vectors",
+          "Cosine always equals one"
+        ],
+        "answer": 0,
+        "explanation": "Normalization compares direction instead of rewarding larger magnitudes.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "ADC",
+          "PWM",
+          "documents",
+          "0"
+        ],
+        "answer": 0,
+        "explanation": "One outer list represents the first query, then index zero selects its nearest result.",
+        "code": "result = {\"documents\": [[\"ADC\", \"PWM\"]]}\nfirst_query = result[\"documents\"][0]\nnearest = first_query[0]\nprint(nearest)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why supply embeddings explicitly here?",
+        "options": [
+          "To avoid hidden model downloads and control the vector space",
+          "To turn vectors into passwords",
+          "To avoid storage",
+          "To guarantee perfect retrieval"
+        ],
+        "answer": 0,
+        "explanation": "The same embedding space must be used for stored chunks and queries.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "True",
+          "False",
+          "s1",
+          "None"
+        ],
+        "answer": 0,
+        "explanation": "Every cited ID belongs to the retrieved source set.",
+        "code": "allowed = {\"s1\", \"s2\"}\nused = [\"s1\"]\nvalid = all(x in allowed for x in used)\nprint(valid)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Does a JSON schema prevent hallucinations?",
+        "options": [
+          "Yes, always",
+          "No; it constrains shape, while evidence and validation address grounding",
+          "It removes the need for retrieval",
+          "It verifies every fact"
+        ],
+        "answer": 1,
+        "explanation": "Well-formed JSON can still contain false claims or invalid citations.",
+        "code": ""
+      },
+      {
+        "kind": "RAG",
+        "prompt": "What is the correct retrieval sequence?",
+        "options": [
+          "Generate first, invent citations",
+          "Embed query, retrieve chunks, build grounded prompt, validate response",
+          "Sort by document length",
+          "Query with a different embedding dimension"
+        ],
+        "answer": 1,
+        "explanation": "Retrieval supplies evidence; response validation checks structure and citation membership.",
+        "code": ""
+      },
+      {
+        "kind": "Grounding",
+        "prompt": "The sources do not answer the question. What should happen?",
+        "options": [
+          "Invent a confident answer",
+          "Report insufficient evidence",
+          "Use an unrelated citation",
+          "Hide all sources"
+        ],
+        "answer": 1,
+        "explanation": "A grounded system must abstain when its evidence cannot support an answer.",
+        "code": ""
+      }
+    ],
+    "4": [
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "5",
+          "23",
+          "6",
+          "None"
+        ],
+        "answer": 0,
+        "explanation": "Both values are integers so addition gives 5.",
+        "code": "args = {\"a\":2, \"b\":3}\na = args[\"a\"]\nb = args[\"b\"]\nprint(a+b)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why avoid eval on tool arguments?",
+        "options": [
+          "It is too accurate",
+          "It can execute arbitrary code",
+          "It only accepts numbers",
+          "It forces JSON"
+        ],
+        "answer": 1,
+        "explanation": "Model-produced text must be validated as data, never executed as Python.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "0",
+          "1",
+          "5",
+          "None"
+        ],
+        "answer": 2,
+        "explanation": "The latest observation contains result 5.",
+        "code": "history = []\nhistory.append({\"result\":5})\nvalue = history[-1][\"result\"]\nprint(value)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why bound agent steps?",
+        "options": [
+          "To eliminate every error",
+          "To limit runaway loops and cost",
+          "To disable observations",
+          "To force one tool only"
+        ],
+        "answer": 1,
+        "explanation": "A finite action budget makes failure predictable and caps repeated calls.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "hi",
+          "HI",
+          "text",
+          "None"
+        ],
+        "answer": 1,
+        "explanation": "upper returns an uppercase string.",
+        "code": "data = {\"text\":\"hi\"}\ntext = data[\"text\"]\nmessage = text.upper()\nprint(message)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Why use textContent for model output?",
+        "options": [
+          "It runs HTML scripts",
+          "It renders untrusted output as text",
+          "It stores API keys",
+          "It bypasses validation"
+        ],
+        "answer": 1,
+        "explanation": "Model output should not become executable HTML.",
+        "code": ""
+      },
+      {
+        "kind": "Predict the Output",
+        "prompt": "What is printed?",
+        "options": [
+          "BASE",
+          "DEPS",
+          "APP",
+          "None"
+        ],
+        "answer": 2,
+        "explanation": "The last layer name is app.",
+        "code": "layers = [\"base\", \"deps\", \"app\"]\nchanged = layers[-1]\nlabel = changed.upper()\nprint(label)"
+      },
+      {
+        "kind": "Concept",
+        "prompt": "Does .gitignore keep secrets out of Docker builds?",
+        "options": [
+          "Yes, automatically",
+          "No; use .dockerignore for the build context",
+          "Only on Mac",
+          "Only with POST"
+        ],
+        "answer": 1,
+        "explanation": "Git and Docker have separate ignore mechanisms.",
+        "code": ""
+      },
+      {
+        "kind": "Security",
+        "prompt": "Where should the live API key live?",
+        "options": [
+          "Browser JavaScript",
+          "Dockerfile literal",
+          "Server environment at runtime",
+          "Public README"
+        ],
+        "answer": 2,
+        "explanation": "Server-side runtime configuration avoids shipping secrets to clients or images.",
+        "code": ""
+      },
+      {
+        "kind": "Shipping",
+        "prompt": "What verifies more than a Dockerfile text check?",
+        "options": [
+          "Counting its lines",
+          "Building the image and making a request to its running service",
+          "Renaming it",
+          "Adding a badge"
+        ],
+        "answer": 1,
+        "explanation": "A build and runtime smoke test catch dependency, command and networking failures.",
+        "code": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>The Gauntlet · ECE to AI</title>
+  <link rel="stylesheet" href="/static/style.css?v=7">
+  <script src="/static/theme.js?v=7"></script>
+  <script src="/static/rooms.js?v=7" defer></script>
+  <script src="/static/game.js?v=7" defer></script>
+</head>
+<body>
+  <!-- Opening screen. It is static markup so it paints before any script or data loads; game.js fills in the name and dismisses it. -->
+  <div id="splash" class="splash" role="status" aria-live="polite">
+    <div class="splash-grid" aria-hidden="true"></div>
+    <div class="splash-scene" aria-hidden="true">
+      <span class="splash-halo"></span>
+      <span class="splash-tile t1"></span><span class="splash-tile t2"></span><span class="splash-tile t3"></span><span class="splash-tile t4"></span>
+      <svg class="splash-cube" viewBox="0 0 120 120">
+        <defs>
+          <linearGradient id="cube-top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8c2ff"/><stop offset="1" stop-color="#8d9cff"/></linearGradient>
+          <linearGradient id="cube-left" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f5bf0"/><stop offset="1" stop-color="#4b3fc4"/></linearGradient>
+          <linearGradient id="cube-right" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a5bd8"/><stop offset="1" stop-color="#2c348f"/></linearGradient>
+          <linearGradient id="cube-shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <clipPath id="cube-clip"><path d="M60 18 96 39V81L60 102 24 81V39Z"/></clipPath>
+        </defs>
+        <path class="face f-left" d="M24 39 60 60V102L24 81Z" fill="url(#cube-left)"/>
+        <path class="face f-right" d="M96 39 60 60V102L96 81Z" fill="url(#cube-right)"/>
+        <path class="face f-top" d="M60 18 96 39 60 60 24 39Z" fill="url(#cube-top)"/>
+        <path class="edges" d="M24 39 60 60 96 39M60 60V102" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1"/>
+        <g clip-path="url(#cube-clip)"><rect class="shine" x="-60" y="0" width="40" height="120" fill="url(#cube-shine)"/></g>
+      </svg>
+    </div>
+    <div class="splash-text">
+      <p class="splash-hello" id="splash-hello">The Gauntlet</p>
+      <h1 class="splash-name" id="splash-name"></h1>
+      <form class="splash-form" id="splash-form" hidden>
+        <label for="splash-input">What should we call you?</label>
+        <div class="splash-field">
+          <input id="splash-input" name="name" maxlength="24" autocomplete="given-name" placeholder="Your name" required>
+          <button class="btn" type="submit">Enter <span aria-hidden="true">→</span></button>
+        </div>
+      </form>
+      <p class="splash-sub" id="splash-sub">Loading your rooms…</p>
+    </div>
+    <div class="splash-bar" aria-hidden="true"><i id="splash-bar"></i></div>
+    <p class="splash-skip" id="splash-skip" aria-hidden="true">Click or press any key to skip</p>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#/"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 21 7 12 12 3 7Z" fill="currentColor" opacity=".95"/><path d="M3 7 12 12V22L3 17Z" fill="currentColor" opacity=".55"/><path d="M21 7 12 12V22L21 17Z" fill="currentColor" opacity=".3"/></svg>The Gauntlet <span>ECE → AI</span></a>
+      <nav aria-label="Main">
+        <a href="#/" data-nav="learn">Map</a>
+        <a href="#/review" data-nav="review">Review</a>
+        <a href="#/progress" data-nav="progress">Progress</a>
+        <a href="#/help" data-nav="help">Help</a>
+      </nav>
+      <div class="meters" aria-label="Your stats">
+        <span class="meter" title="Player level and XP"><b id="level">Lv 1</b> <span id="xp">0 XP</span></span>
+        <span class="meter hp" title="Health. Wrong quiz answers and failed test runs cost 10."><span aria-hidden="true">♥</span> <b id="hp">100</b></span>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+          <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></svg>
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main id="screen" tabindex="-1"></main>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

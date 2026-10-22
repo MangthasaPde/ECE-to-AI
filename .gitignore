@@ -1,0 +1,11 @@
+.venv/
+.env
+__pycache__/
+.pytest_cache/
+data/
+*.db
+*.sqlite3
+workspace/**/result.json
+workspace/**/vectors/
+.DS_Store
+*.app/
